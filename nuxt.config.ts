@@ -4,4 +4,14 @@ export default defineNuxtConfig({
 		strict: true,
 	},
 	modules: ['@nuxtjs/eslint-module'],
+	eslint: {
+		lintOnStart: false,
+	},
+	css: [
+		'vuetify/lib/styles/main.sass',
+		'@mdi/font/css/materialdesignicons.min.css',
+	],
+	build: {
+		transpile: ['vuetify'],
+	},
 });
