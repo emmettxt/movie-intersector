@@ -1,5 +1,7 @@
+import SearchField from './components/SearchField.vue';
+
 <template>
 	<div>
-		<NuxtWelcome />
+		<SearchField />
 	</div>
 </template>
