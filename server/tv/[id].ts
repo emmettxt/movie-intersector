@@ -1,5 +1,5 @@
-import tmdbAxios from '../../utils/tmdbAxios';
-import { TvShowDetails } from '../../utils/types/tmdbAPI';
+import tmdbAxios from '../utils/tmdbAxios';
+import { TvShowDetails } from '../utils/types/tmdbAPI';
 
 export default defineEventHandler(async (event): Promise<TvShowDetails> => {
 	const id = event.context.params?.id;
