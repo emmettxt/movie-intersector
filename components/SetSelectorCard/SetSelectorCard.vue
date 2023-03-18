@@ -44,7 +44,7 @@ watch(searchQuery, async (newSearchQuery) => {
 		return;
 	}
 	try {
-		const { data } = await useFetch(`/api/search/${newSearchQuery}`);
+		const { data } = await useFetch(`/api/tmdb/search/${newSearchQuery}`);
 		if (data.value) {
 			const converted = data.value.map((item) => ({
 				title: item.media_type === 'movie' ? item.title : item.name,

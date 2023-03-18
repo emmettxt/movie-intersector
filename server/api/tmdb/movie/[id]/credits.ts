@@ -1,4 +1,3 @@
-import tmdbAxios from '~~/server/utils/tmdbAxios';
 import { Credits } from '~~/server/utils/types/tmdbAPI';
 
 export default defineEventHandler(async (event): Promise<Credits> => {

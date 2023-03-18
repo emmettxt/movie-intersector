@@ -1,11 +1,8 @@
-// import tmdbAPI from '../utils/tmdbAPI';
-// import {}
-import tmdbAxios from '../../utils/tmdbAxios';
 import {
+	MovieGeneric,
 	SearchResultMulti,
 	TvShowGeneric,
-	MovieGeneric,
-} from '../../utils/types/tmdbAPI';
+} from '~~/server/utils/types/tmdbAPI';
 
 export default defineEventHandler(
 	async (event): Promise<Array<TvShowGeneric | MovieGeneric>> => {

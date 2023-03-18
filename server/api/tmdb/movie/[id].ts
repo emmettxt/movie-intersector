@@ -1,5 +1,4 @@
-import tmdbAxios from '../../utils/tmdbAxios';
-import { MovieDetails } from '../../utils/types/tmdbAPI';
+import { MovieDetails } from '~~/server/utils/types/tmdbAPI';
 
 export default defineEventHandler(async (event): Promise<MovieDetails> => {
 	const id = event.context.params?.id;
