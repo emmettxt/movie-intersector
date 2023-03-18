@@ -12,7 +12,7 @@ export interface Movie {
 	poster_path: string;
 	adult: boolean;
 	overview: string;
-	release_date: Date;
+	release_date: string;
 	genre_ids: number[];
 	original_language: string;
 	backdrop_path: string;
@@ -100,7 +100,7 @@ export interface TvShow {
 	genre_ids: number[];
 	original_language: string;
 	vote_count: number;
-	first_air_date: Date;
+	first_air_date: string;
 }
 
 export interface TvShowMultiSearch extends TvShow {
