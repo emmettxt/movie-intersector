@@ -1,11 +1,12 @@
+<script setup lang="ts">
+const sets = useSets();
+</script>
+
 <template>
 	<v-container>
 		<v-row>
-			<v-col>
-				<SetSelectorCard />
-			</v-col>
-			<v-col>
-				<SetSelectorCard />
+			<v-col v-for="(value, setId) in sets" :key="setId">
+				<SetSelectorCard :set-id="setId" />
 			</v-col>
 		</v-row>
 	</v-container>
