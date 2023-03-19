@@ -154,7 +154,7 @@ export interface TvShowDetails extends TvShow {
 	last_air_date: Date;
 }
 
-export interface Cast {
+interface CreditBase {
 	adult?: boolean;
 	gender?: number | null;
 	id?: number;
@@ -163,30 +163,50 @@ export interface Cast {
 	original_name?: string;
 	popularity?: number;
 	profile_path?: string | null;
+}
+export interface Cast extends CreditBase {
 	cast_id?: number;
 	character?: string;
 	credit_id?: string;
 	order?: number;
 }
 
-export interface Crew {
-	adult?: boolean;
-	gender?: number | null;
-	id?: number;
-	known_for_department?: string;
-	name?: string;
-	original_name?: string;
-	popularity?: number;
-	profile_path?: string | null;
+export interface Crew extends CreditBase {
 	credit_id?: string;
 	department?: string;
 	job?: string;
 }
 
+export interface AggregateCast extends CreditBase {
+	roles: {
+		credit_id?: string;
+		character?: string;
+		episode_count?: number;
+	}[];
+	total_episode_count: number;
+	order: number;
+}
+
+export interface AggregateCrew extends CreditBase {
+	jobs: {
+		credit_id?: string;
+		job?: string;
+		episode_count?: number;
+	}[];
+	total_episode_count: number;
+	department: string;
+}
+
+export interface AggregateCredits {
+	id: number;
+	cast: AggregateCast[];
+	crew: AggregateCrew[];
+}
+
 export interface Credits {
 	id: number;
 	cast: Cast[];
-	cred: Crew[];
+	crew: Crew[];
 }
 
 export type Multi = TvShowGeneric | MovieGeneric | PersonGeneric;
