@@ -47,7 +47,10 @@ watch(searchQuery, async (newSearchQuery) => {
 		const { data } = await useFetch(`/api/tmdb/search/${newSearchQuery}`);
 		if (data.value) {
 			const converted = data.value.map((item) => ({
-				title: item.media_type === 'movie' ? item.title : item.name,
+				title:
+					item.media_type === 'movie'
+						? `${item.title} (${item.release_date.split('-')[0]})`
+						: `${item.name} (${item.first_air_date.split('-')[0]})`,
 				id: item.id,
 				posterURL: getPosterUrl(item.poster_path, 'w154'),
 				original: { ...item },
