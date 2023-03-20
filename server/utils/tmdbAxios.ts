@@ -21,6 +21,7 @@ tmdbAxios.interceptors.response.use(
 				message: error.response?.data.status_message,
 			});
 		}
+		throw error;
 	}
 );
 
