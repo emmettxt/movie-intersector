@@ -31,12 +31,19 @@ export default defineEventHandler(async (event) => {
 	const setsCredits = await Promise.all(setsCreditsPromises);
 	const commonPeopleIds = getCommonPersonIDs(setsCredits);
 
-	const res = setsCredits.map((creditWithSetItemArray) =>
+	const setsCommonPeopleCredits = setsCredits.map((creditWithSetItemArray) =>
 		creditWithSetItemArray.filter(
 			(cred) => cred.credit.id && commonPeopleIds.has(cred.credit.id)
 		)
 	);
-	return res;
+
+	const commonPeople = (
+		await Promise.all(
+			Array.from(commonPeopleIds).map((id) => $fetch(`/api/tmdb/person/${id}`))
+		)
+	).sort((a, b) => b.popularity - a.popularity);
+	return { people: commonPeople, sets: setsCommonPeopleCredits };
+	// return res;
 });
 
 const getCommonPersonIDs = (setsCredits: CreditWithSetItem[][]) => {
