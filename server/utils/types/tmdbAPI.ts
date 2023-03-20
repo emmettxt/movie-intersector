@@ -129,8 +129,8 @@ export interface PersonGeneric extends Person {
 export interface PersonDetails extends Person {
 	also_known_as: string[];
 	biography: string;
-	birthday: Date;
-	deathday: Date;
+	birthday: string;
+	deathday: string;
 	gender: number;
 	homepage: string;
 	imdb_id: string;
