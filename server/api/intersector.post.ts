@@ -5,6 +5,11 @@ import {
 	Crew,
 	Credits,
 	AggregateCredits,
+	PersonDetails,
+	TvShowDetails,
+	MovieDetails,
+	AggregateCast,
+	AggregateCrew,
 } from '../utils/types/tmdbAPI';
 type setItem = Pick<MovieGeneric | TvShowGeneric, 'media_type' | 'id'>;
 type set = setItem[];
@@ -15,38 +20,74 @@ interface CrewGeneric extends Crew {
 interface CastGeneric extends Cast {
 	type: 'cast';
 }
-
-interface CreditsWithSetItem {
-	setItem: setItem;
-	credits: Credits | AggregateCredits;
+interface AggregateCastGeneric extends AggregateCast {
+	type: 'cast';
 }
-interface CreditWithSetItem {
-	setItem: setItem;
-	credit: CrewGeneric | CastGeneric;
+interface AggregateCrewGeneric extends AggregateCrew {
+	type: 'crew';
 }
 
-export default defineEventHandler(async (event) => {
-	const body = parseBody(await readBody(event));
-	const setsCreditsPromises = body.sets.map((set) => getSetCredits(set));
-	const setsCredits = await Promise.all(setsCreditsPromises);
-	const commonPeopleIds = getCommonPersonIDs(setsCredits);
+interface TvShowCreditsFullDetails {
+	credits: AggregateCredits;
+	media_type: 'tv';
+	mediaDetails: TvShowDetails;
+}
 
-	const setsCommonPeopleCredits = setsCredits.map((creditWithSetItemArray) =>
-		creditWithSetItemArray.filter(
-			(cred) => cred.credit.id && commonPeopleIds.has(cred.credit.id)
+interface MovieCreditsFullDetails {
+	credits: Credits;
+	media_type: 'movie';
+	mediaDetails: MovieDetails;
+}
+type CreditsFullDetails = MovieCreditsFullDetails | TvShowCreditsFullDetails;
+
+// a single credit
+interface TvCreditFullDetails {
+	credit: AggregateCastGeneric | AggregateCrewGeneric;
+	media_type: 'tv';
+	mediaDetails: TvShowDetails;
+}
+
+interface MovieCreditFullDetails {
+	credit: CastGeneric | CrewGeneric;
+	media_type: 'movie';
+	mediaDetails: MovieDetails;
+}
+
+type CreditFullDetails = TvCreditFullDetails | MovieCreditFullDetails;
+
+export interface IntersectionResponse {
+	people: Array<{ person: PersonDetails; credits: CreditFullDetails[] }>;
+}
+
+export default defineEventHandler(
+	async (event): Promise<IntersectionResponse> => {
+		const { sets } = parseBody(await readBody(event));
+		const setsCredits = await Promise.all(
+			sets.map((set) => getSetCreditsAndDetails(set))
+		);
+		const commonPeopleIds = getCommonPersonIDs(setsCredits);
+
+		const commonPeople = (
+			await Promise.all(
+				Array.from(commonPeopleIds).map((id) =>
+					$fetch(`/api/tmdb/person/${id}`)
+				)
+			)
 		)
-	);
+			.sort((a, b) => b.popularity - a.popularity)
+			.map((person) => ({
+				person,
+				credits: setsCredits
+					.map((setcredits) =>
+						setcredits.filter((credit) => credit.credit.id === person.id)
+					)
+					.reduce((array, s) => array.concat(s), []),
+			}));
+		return { people: commonPeople };
+	}
+);
 
-	const commonPeople = (
-		await Promise.all(
-			Array.from(commonPeopleIds).map((id) => $fetch(`/api/tmdb/person/${id}`))
-		)
-	).sort((a, b) => b.popularity - a.popularity);
-	return { people: commonPeople, sets: setsCommonPeopleCredits };
-	// return res;
-});
-
-const getCommonPersonIDs = (setsCredits: CreditWithSetItem[][]) => {
+const getCommonPersonIDs = (setsCredits: CreditFullDetails[][]) => {
 	const peopleIds = getUniquePersonIdsFromSets(setsCredits);
 	for (const personId of peopleIds) {
 		// if there is any set that does not contain the id, remove it and move on to the next
@@ -60,7 +101,7 @@ const getCommonPersonIDs = (setsCredits: CreditWithSetItem[][]) => {
 	return peopleIds;
 };
 
-const getUniquePersonIdsFromSets = (setsCredits: CreditWithSetItem[][]) => {
+const getUniquePersonIdsFromSets = (setsCredits: CreditFullDetails[][]) => {
 	const personIds = new Set<number>();
 	for (const set of setsCredits) {
 		for (const credit of set) {
@@ -70,44 +111,96 @@ const getUniquePersonIdsFromSets = (setsCredits: CreditWithSetItem[][]) => {
 	return personIds;
 };
 
-const getSetCredits = async (set: set): Promise<CreditWithSetItem[]> => {
-	const creditsPromises = set.map(
-		(setItem) =>
-			new Promise<CreditsWithSetItem>((resolve) => {
-				(setItem.media_type === 'movie'
-					? $fetch(`/api/tmdb/movie/${setItem.id}/credits`)
-					: $fetch(`/api/tmdb/tv/${setItem.id}/aggregate_credits`)
-				).then((credits) => resolve({ setItem, credits }));
-			})
-	);
-	const credits = (await Promise.all(creditsPromises))
-		.map((creditsWithSetItem) => flattenCreditsWithSetItem(creditsWithSetItem))
+const getSetItemDetailsAndCredits = (
+	setItem: setItem
+): Promise<CreditsFullDetails> =>
+	new Promise((resolve, reject) => {
+		if (setItem.media_type === 'movie') {
+			Promise.all([
+				$fetch(`/api/tmdb/movie/${setItem.id}/credits`),
+				$fetch(`/api/tmdb/movie/${setItem.id}`),
+			])
+				.then(([credits, movieDetails]) =>
+					resolve({
+						credits,
+						mediaDetails: movieDetails,
+						media_type: 'movie',
+					})
+				)
+				.catch((error) => reject(error));
+		} else {
+			Promise.all([
+				$fetch(`/api/tmdb/tv/${setItem.id}/aggregate_credits`),
+				$fetch(`/api/tmdb/tv/${setItem.id}`),
+			])
+				.then(([credits, tvShowDetails]) =>
+					resolve({
+						credits,
+						mediaDetails: tvShowDetails,
+						media_type: 'tv',
+					})
+				)
+				.catch((error) => reject(error));
+		}
+	});
+
+const getSetCreditsAndDetails = async (
+	set: set
+): Promise<CreditFullDetails[]> => {
+	const creditsArray: CreditFullDetails[] = (
+		await Promise.all(
+			set.map((setItem) => getSetItemDetailsAndCredits(setItem))
+		)
+	)
+		.map((creditsFullDetails) => flattenCreditsWithSetItem(creditsFullDetails))
 		.reduce(
-			(creditWithSetItemArray, creditWithSetItem) =>
-				creditWithSetItemArray.concat(creditWithSetItem),
-			[] as CreditWithSetItem[]
+			(array, creditfulldetailsarray) => array.concat(creditfulldetailsarray),
+			[]
 		);
-	return credits;
+	return creditsArray;
 };
 
 const flattenCreditsWithSetItem = (
-	creditsWithSetItem: CreditsWithSetItem
-): CreditWithSetItem[] => {
-	const creditWithSetItemArray: CreditWithSetItem[] = [];
-	const { setItem } = creditsWithSetItem;
-	for (const credit of creditsWithSetItem.credits.cast) {
-		creditWithSetItemArray.push({
-			setItem,
-			credit: { type: 'cast', ...credit },
-		});
+	creditsFullDetails: CreditsFullDetails
+): CreditFullDetails[] => {
+	const creditFullDetailsArray: CreditFullDetails[] = [];
+	const mediaType = creditsFullDetails.media_type;
+	if (mediaType === 'tv') {
+		const { mediaDetails } = creditsFullDetails;
+
+		for (const credit of creditsFullDetails.credits.cast) {
+			creditFullDetailsArray.push({
+				media_type: 'tv',
+				mediaDetails,
+				credit: { type: 'cast', ...credit },
+			});
+		}
+		for (const credit of creditsFullDetails.credits.crew) {
+			creditFullDetailsArray.push({
+				media_type: 'tv',
+				mediaDetails,
+				credit: { type: 'crew', ...credit },
+			});
+		}
+	} else {
+		const { mediaDetails } = creditsFullDetails;
+
+		for (const credit of creditsFullDetails.credits.cast) {
+			creditFullDetailsArray.push({
+				media_type: 'movie',
+				mediaDetails,
+				credit: { type: 'cast', ...credit },
+			});
+		}
+		for (const credit of creditsFullDetails.credits.crew) {
+			creditFullDetailsArray.push({
+				media_type: 'movie',
+				mediaDetails,
+				credit: { type: 'crew', ...credit },
+			});
+		}
 	}
-	for (const credit of creditsWithSetItem.credits.crew) {
-		creditWithSetItemArray.push({
-			setItem,
-			credit: { type: 'crew', ...credit },
-		});
-	}
-	return creditWithSetItemArray;
+	return creditFullDetailsArray;
 };
 
 const parseBody = (body: unknown): { sets: set[] } => {

@@ -72,6 +72,10 @@ export interface MovieDetails extends Movie {
 	tagline: string;
 }
 
+export interface MovieDetailsGeneric extends MovieDetails {
+	media_type: 'movie';
+}
+
 export interface SearchResult<T> {
 	page: number;
 	results: Array<T>;
@@ -84,7 +88,7 @@ export interface Season {
 	episode_count: number;
 	poster_path: string;
 	season_number: number;
-	air_date: Date;
+	air_date: string;
 }
 
 export interface TvShow {
@@ -151,7 +155,11 @@ export interface TvShowDetails extends TvShow {
 	seasons: Season[];
 	status: string;
 	type: string;
-	last_air_date: Date;
+	last_air_date: string;
+}
+
+export interface TvShowDetailsGeneric extends TvShowDetails {
+	media_type: 'tv';
 }
 
 interface CreditBase {
