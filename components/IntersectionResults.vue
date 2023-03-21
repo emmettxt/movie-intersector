@@ -21,16 +21,18 @@ const loadIntersection = async () => {
 </script>
 <template>
 	<v-btn class="ma-3" @click="loadIntersection">Intersect</v-btn>
-	<div v-if="intersection" class="card-container">
-		<v-row no-gutters fill-height>
+	<v-container v-if="intersection" class="pa-0">
+		<v-row>
 			<v-col
 				v-for="person of intersection.people"
 				:key="person.person.id"
-				fill-height
-				class="v-col-4 fill-height"
+				cols="12"
+				sm="6"
+				md="4"
+				xl="3"
 			>
-				<v-card fill-height>
-					<v-container>
+				<v-card height="100%">
+					<v-container class="pa-0">
 						<v-row>
 							<v-col class="v-col-5">
 								<v-img :src="getProfileUrl(person.person.profile_path, 'w185')">
@@ -53,19 +55,5 @@ const loadIntersection = async () => {
 				</v-card>
 			</v-col>
 		</v-row>
-	</div>
+	</v-container>
 </template>
-
-<!-- <style scoped>
-.card-container {
-	display: grid;
-	gap: 1rem;
-	grid-template-columns: repeat(4, 1fr);
-}
-.card-container > * {
-	/* width: 300px; */
-	/* flex-basis: 30%;
-	flex-grow: 1;
-	flex-shrink: 0; */
-}
-</style> -->
