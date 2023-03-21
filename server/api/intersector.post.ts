@@ -30,13 +30,13 @@ interface AggregateCrewGeneric extends AggregateCrew {
 interface TvShowCreditsFullDetails {
 	credits: AggregateCredits;
 	media_type: 'tv';
-	mediaDetails: TvShowDetails;
+	mediaDetails: Pick<TvShowDetails, 'name'>;
 }
 
 interface MovieCreditsFullDetails {
 	credits: Credits;
 	media_type: 'movie';
-	mediaDetails: MovieDetails;
+	mediaDetails: Pick<MovieDetails, 'title'>;
 }
 type CreditsFullDetails = MovieCreditsFullDetails | TvShowCreditsFullDetails;
 
@@ -44,13 +44,13 @@ type CreditsFullDetails = MovieCreditsFullDetails | TvShowCreditsFullDetails;
 interface TvCreditFullDetails {
 	credit: AggregateCastGeneric | AggregateCrewGeneric;
 	media_type: 'tv';
-	mediaDetails: TvShowDetails;
+	mediaDetails: Pick<TvShowDetails, 'name'>;
 }
 
 interface MovieCreditFullDetails {
 	credit: CastGeneric | CrewGeneric;
 	media_type: 'movie';
-	mediaDetails: MovieDetails;
+	mediaDetails: Pick<MovieDetails, 'title'>;
 }
 
 type CreditFullDetails = TvCreditFullDetails | MovieCreditFullDetails;
@@ -123,7 +123,7 @@ const getSetItemDetailsAndCredits = (
 				.then(([credits, movieDetails]) =>
 					resolve({
 						credits,
-						mediaDetails: movieDetails,
+						mediaDetails: { title: movieDetails.title },
 						media_type: 'movie',
 					})
 				)
@@ -136,7 +136,7 @@ const getSetItemDetailsAndCredits = (
 				.then(([credits, tvShowDetails]) =>
 					resolve({
 						credits,
-						mediaDetails: tvShowDetails,
+						mediaDetails: { name: tvShowDetails.name },
 						media_type: 'tv',
 					})
 				)

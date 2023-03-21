@@ -20,45 +20,52 @@ const loadIntersection = async () => {
 };
 </script>
 <template>
-	<v-card>
-		<v-btn class="ma-3" @click="loadIntersection">Intersect</v-btn>
-		<div v-if="intersection" class="card-container">
-			<v-card
+	<v-btn class="ma-3" @click="loadIntersection">Intersect</v-btn>
+	<div v-if="intersection" class="card-container">
+		<v-row no-gutters fill-height>
+			<v-col
 				v-for="person of intersection.people"
 				:key="person.person.id"
-				width="300"
+				fill-height
+				class="v-col-4 fill-height"
 			>
-				<v-container>
-					<v-row>
-						<v-col class="v-col-5">
-							<v-img :src="getProfileUrl(person.person.profile_path, 'w185')">
-							</v-img>
-							<div class="text-center pa-1 text-body-1">
-								{{ person.person.name }}
-							</div>
-						</v-col>
-						<v-col class="v-col-7">
-							<v-list lines="two">
-								<CreditListItem
-									v-for="credit in person.credits"
-									:key="credit.credit.id"
-									:credit="credit"
-								/>
-							</v-list>
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-card>
-		</div>
-	</v-card>
+				<v-card fill-height>
+					<v-container>
+						<v-row>
+							<v-col class="v-col-5">
+								<v-img :src="getProfileUrl(person.person.profile_path, 'w185')">
+								</v-img>
+								<div class="text-center pa-1 text-body-1">
+									{{ person.person.name }}
+								</div>
+							</v-col>
+							<v-col class="v-col-7">
+								<v-list lines="two" density="compact">
+									<CreditListItem
+										v-for="credit in person.credits"
+										:key="credit.credit.id"
+										:credit="credit"
+									/>
+								</v-list>
+							</v-col>
+						</v-row>
+					</v-container>
+				</v-card>
+			</v-col>
+		</v-row>
+	</div>
 </template>
 
-<style scoped>
+<!-- <style scoped>
 .card-container {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
 	gap: 1rem;
-	padding: 1rem;
-	justify-content: space-evenly;
+	grid-template-columns: repeat(4, 1fr);
 }
-</style>
+.card-container > * {
+	/* width: 300px; */
+	/* flex-basis: 30%;
+	flex-grow: 1;
+	flex-shrink: 0; */
+}
+</style> -->

@@ -19,20 +19,20 @@ const creditName: string = (() => {
 	if (props.credit.credit.type === 'crew') {
 		return props.credit.credit.jobs
 			.map((job) => `${job.job} (episodes:${job.episode_count})`)
-			.toString();
+			.reduce((string, jobString) => string + jobString + '\n', '');
 	}
 	return props.credit.credit.roles
 		.map((role) => `${role.character} (episodes:${role.episode_count})`)
-		.toString();
+		.reduce((string, roleString) => string + roleString + '\n', '');
 })();
 </script>
 
 <template>
 	<v-list-item>
-		<div class="text-subtitle-1">
+		<div class="text-subtitle-2 font-weight-bold">
 			{{ title }}
 		</div>
-		<div class="text-subtitle-2 text-medium-emphasis">
+		<div class="text-caption text-medium-emphasis">
 			{{ creditName }}
 		</div>
 	</v-list-item>
